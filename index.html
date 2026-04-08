@@ -662,8 +662,11 @@
         // Action button handler
         if (options.action) {
             wrapper.querySelector('.gooey-toast-action-button').addEventListener('click', function() {
+                // Remove this toast instantly (no exit animation) to avoid overlap
+                clearTimeout(timer);
+                wrapper._dismissed = true;
+                wrapper.remove();
                 options.action.onClick();
-                dismissToast(wrapper);
             });
         }
 
