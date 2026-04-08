@@ -153,7 +153,6 @@
             background: none; border: 2px solid var(--gray-200); color: var(--gray-500);
             padding: 12px 20px; font-size: 0.95em; font-weight: 700;
             border-radius: var(--radius-sm); cursor: pointer;
-            margin-top: 20px; align-self: center;
             transition: border-color 0.15s, color 0.15s;
         }
         .btn-stats:hover { border-color: var(--gray-400); color: var(--gray-700); }
@@ -309,22 +308,22 @@
         #loader.error { border-left: 5px solid var(--red); color: var(--red); cursor: pointer; }
 
         /* ── Stats modal ───────────────────────── */
-        #stats-modal-overlay {
+        #stats-modal-overlay, #books-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
             display: flex; align-items: center; justify-content: center;
         }
-        #stats-modal {
+        #stats-modal, .modal-card {
             width: 92%; max-width: 800px; max-height: 90vh; overflow-y: auto;
             background: var(--card-bg); border-radius: var(--radius); padding: 28px;
             box-shadow: var(--shadow-lg);
         }
-        #stats-modal-header {
+        #stats-modal-header, .modal-header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--gray-200);
         }
-        #stats-modal-header h2 { margin: 0; font-size: 1.3em; font-weight: 800; }
-        #stats-close-button {
+        #stats-modal-header h2, .modal-header h2 { margin: 0; font-size: 1.3em; font-weight: 800; }
+        #stats-close-button, #books-close-button {
             font-size: 1.8em; color: var(--gray-400); cursor: pointer;
             border: none; background: none; padding: 0; line-height: 1;
         }
@@ -337,6 +336,17 @@
         .stat-card p { margin: 6px 0 0; color: var(--gray-500); font-size: 0.85em; font-weight: 600; }
         .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .chart-section h3 { font-size: 1em; font-weight: 700; color: var(--gray-700); margin: 0 0 12px; }
+
+        /* ── Books modal list ─────────────────── */
+        .book-list-item {
+            padding: 12px 14px; margin-bottom: 6px;
+            background: var(--gray-50); border-radius: var(--radius-sm);
+            font-size: 0.95em; font-weight: 600; color: var(--gray-800);
+            border-left: 4px solid var(--green);
+        }
+        .book-list-empty {
+            text-align: center; padding: 30px 16px; color: var(--gray-400); font-weight: 600;
+        }
 
         /* ── Responsive ────────────────────────── */
         @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
@@ -400,7 +410,10 @@
                     <span class="preview-book" id="preview-book"></span>
                 </div>
                 <button id="loan-button" class="btn-loan">PRESTAR</button>
-                <button id="stats-button" class="btn-stats">📊 Ver Estadísticas</button>
+                <div style="display:flex;gap:10px;margin-top:20px;align-self:stretch;">
+                    <button id="available-books-button" class="btn-stats" style="flex:1;">📗 Libros Disponibles</button>
+                    <button id="stats-button" class="btn-stats" style="flex:1;">📊 Estadísticas</button>
+                </div>
             </div>
 
             <!-- ZONA DEVOLUCIONES -->
@@ -439,6 +452,21 @@
                 <div class="chart-section"><h3>🏆 Libros Más Leídos</h3><canvas id="top-books-chart"></canvas></div>
                 <div class="chart-section"><h3>👥 Mayores Lectores</h3><canvas id="top-readers-chart"></canvas></div>
             </div>
+        </div>
+    </div>
+
+    <div id="books-modal-overlay" class="hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📗 Libros Disponibles <span id="books-modal-count" style="font-size:0.65em;color:var(--gray-400);font-weight:600;"></span></h2>
+                <button id="books-close-button">&times;</button>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <div class="input-wrapper">
+                    <input id="books-modal-search" type="text" placeholder="Buscar libro...">
+                </div>
+            </div>
+            <ul id="books-modal-list" style="list-style:none;padding:0;margin:0;max-height:50vh;overflow-y:auto;"></ul>
         </div>
     </div>
 
@@ -509,6 +537,11 @@
         statsButton.addEventListener('click', showStatistics);
         statsCloseButton.addEventListener('click', hideStatistics);
         statsModalOverlay.addEventListener('click', (e) => { if (e.target === statsModalOverlay) hideStatistics(); });
+
+        document.getElementById('available-books-button').addEventListener('click', showAvailableBooks);
+        document.getElementById('books-close-button').addEventListener('click', hideAvailableBooks);
+        document.getElementById('books-modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'books-modal-overlay') hideAvailableBooks(); });
+        document.getElementById('books-modal-search').addEventListener('input', (e) => { renderAvailableBooksList(e.target.value); });
 
         overlay.addEventListener('click', () => {
             if (loader.classList.contains('error')) setProcessing(false);
@@ -1027,6 +1060,33 @@
         }
     }
     document.addEventListener("click", function(e) { closeAllLists(e.target, null); });
+
+    // ==========================================================================
+    // LIBROS DISPONIBLES
+    // ==========================================================================
+    function showAvailableBooks() {
+        document.getElementById('books-modal-search').value = '';
+        renderAvailableBooksList('');
+        document.getElementById('books-modal-overlay').classList.remove('hidden');
+    }
+    function hideAvailableBooks() { document.getElementById('books-modal-overlay').classList.add('hidden'); }
+    function renderAvailableBooksList(filter) {
+        var list = document.getElementById('books-modal-list');
+        var norm = normalizeString(filter || '');
+        var filtered = availableBooks.filter(function(b) { return !norm || normalizeString(b).includes(norm); });
+        document.getElementById('books-modal-count').textContent = '(' + filtered.length + '/' + availableBooks.length + ')';
+        list.innerHTML = '';
+        if (filtered.length === 0) {
+            list.innerHTML = '<li class="book-list-empty">No se encontraron libros.</li>';
+            return;
+        }
+        filtered.forEach(function(book) {
+            var li = document.createElement('li');
+            li.className = 'book-list-item';
+            li.textContent = book;
+            list.appendChild(li);
+        });
+    }
 
     // ==========================================================================
     // ESTADÍSTICAS
