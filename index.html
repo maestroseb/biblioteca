@@ -218,8 +218,8 @@
             width: fit-content; min-width: 300px; max-width: 420px;
             margin-bottom: 14px; cursor: default;
             user-select: none; -webkit-user-select: none;
-            border-radius: 14px; overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
             opacity: 0; transform: translateY(20px) scale(0.95);
             animation: gooeyEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
@@ -227,7 +227,7 @@
             animation: gooeyExit 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
         }
         .gooey-toast-content {
-            position: relative; z-index: 1;
+            position: relative;
             display: flex; flex-direction: column;
             padding: 12px 16px; min-height: 42px; gap: 2px;
         }
@@ -237,15 +237,15 @@
         .gooey-toast-icon {
             flex-shrink: 0; width: 20px; height: 20px;
             display: flex; align-items: center; justify-content: center;
+            color: #fff;
         }
         .gooey-toast-icon svg { width: 18px; height: 18px; }
         .gooey-toast-title {
-            font-size: 14px; font-weight: 700;
+            font-size: 14px; font-weight: 700; color: #fff;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            color: #333;
         }
         .gooey-toast-description {
-            font-size: 13px; color: #444; opacity: 0.85;
+            font-size: 13px; color: rgba(255,255,255,0.85);
             line-height: 1.4; margin-top: 4px;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
@@ -255,20 +255,21 @@
         .gooey-toast-action-button {
             padding: 5px 14px; border-radius: 999px;
             font-size: 13px; font-weight: 700;
-            border: 1.5px solid; cursor: pointer;
-            background: transparent; font-family: inherit;
+            border: none; cursor: pointer;
+            background: rgba(255,255,255,0.25); color: #fff;
+            font-family: inherit; backdrop-filter: blur(2px);
             transition: background-color 0.2s, transform 0.15s;
             white-space: nowrap;
         }
-        .gooey-toast-action-button:hover { filter: brightness(1.1); }
+        .gooey-toast-action-button:hover { background: rgba(255,255,255,0.4); }
         .gooey-toast-action-button:active { transform: scale(0.97); }
         .gooey-toast-progress {
             position: absolute; bottom: 3px; left: 10px; right: 10px;
             height: 3px; border-radius: 2px; overflow: hidden; z-index: 2;
-            background: rgba(0,0,0,0.08);
+            background: rgba(255,255,255,0.2);
         }
         .gooey-toast-progress-bar {
-            height: 100%; border-radius: 2px;
+            height: 100%; border-radius: 2px; background: rgba(255,255,255,0.7);
             transform-origin: left;
             animation: gooeyProgressShrink linear forwards;
         }
@@ -606,98 +607,64 @@
     // ==========================================================================
     const GOEY_TYPE_MAP = { warn: 'warning', success: 'success', error: 'error', info: 'info' };
 
-    // SVG line icons (stroke, no fill) matching goey-toast exactly
+    // SVG line icons (white stroke) matching goey-toast icon set
     const GOEY_ICONS = {
-        success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>',
-        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>',
-        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8.01"/></svg>'
+        success: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>',
+        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>',
+        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8.01"/></svg>'
     };
 
-    // Color palette from goey-toast (light theme)
-    const GOEY_COLORS = {
-        success: { fill: '#4CAF50', title: '#4CAF50', progress: '#4CAF50', actionBg: '#C8E6C9', actionHover: '#A5D6A7' },
-        error:   { fill: '#E53935', title: '#E53935', progress: '#E53935', actionBg: '#FFCDD2', actionHover: '#EF9A9A' },
-        warning: { fill: '#C49000', title: '#C49000', progress: '#C49000', actionBg: '#FFECB3', actionHover: '#FFE082' },
-        info:    { fill: '#1E88E5', title: '#1E88E5', progress: '#1E88E5', actionBg: '#BBDEFB', actionHover: '#90CAF9' },
-        default: { fill: '#555',    title: '#555',    progress: '#999',    actionBg: '#E8E8E8', actionHover: '#DCDCDC' }
+    // Background color palette from goey-toast
+    const GOEY_BG = {
+        success: '#4CAF50',
+        error:   '#E53935',
+        warning: '#C49000',
+        info:    '#1E88E5',
+        default: '#555'
     };
-
-    // Blob SVG path generator (from goey-toast BlobBackground.tsx)
-    function generateBlobPath(w, h, r) {
-        r = Math.min(r, w / 2, h / 2);
-        return 'M ' + r + ' 0 H ' + (w - r) +
-            ' C ' + w + ' 0 ' + w + ' 0 ' + w + ' ' + r +
-            ' V ' + (h - r) +
-            ' C ' + w + ' ' + h + ' ' + w + ' ' + h + ' ' + (w - r) + ' ' + h +
-            ' H ' + r +
-            ' C 0 ' + h + ' 0 ' + h + ' 0 ' + (h - r) +
-            ' V ' + r +
-            ' C 0 0 0 0 ' + r + ' 0 Z';
-    }
 
     function showToast(message, type, options) {
         options = options || {};
         var container = document.getElementById('toast-container');
         var resolvedType = GOEY_TYPE_MAP[type] || 'success';
-        var colors = GOEY_COLORS[resolvedType] || GOEY_COLORS.default;
+        var bgColor = GOEY_BG[resolvedType] || GOEY_BG.default;
         var icon = GOEY_ICONS[resolvedType] || '';
         var duration = options.duration || 4000;
 
-        // Build wrapper
         var wrapper = document.createElement('div');
         wrapper.className = 'gooey-toast-wrapper';
+        wrapper.style.background = bgColor;
         wrapper._dismissed = false;
 
-        // Build content
         var html = '<div class="gooey-toast-content">';
         html += '<div class="gooey-toast-header">';
-        if (icon) html += '<span class="gooey-toast-icon" style="color:' + colors.title + '">' + icon + '</span>';
-        html += '<span class="gooey-toast-title" style="color:' + colors.title + '">' + message + '</span>';
+        if (icon) html += '<span class="gooey-toast-icon">' + icon + '</span>';
+        html += '<span class="gooey-toast-title">' + message + '</span>';
         html += '</div>';
         if (options.description) {
             html += '<p class="gooey-toast-description">' + options.description + '</p>';
         }
         if (options.action) {
             html += '<div class="gooey-toast-action-wrapper">';
-            html += '<button class="gooey-toast-action-button" style="border-color:' + colors.fill + ';color:' + colors.fill + ';background:' + colors.actionBg + '">' + options.action.label + '</button>';
+            html += '<button class="gooey-toast-action-button">' + options.action.label + '</button>';
             html += '</div>';
         }
         if (options.showProgress) {
             html += '<div class="gooey-toast-progress">';
-            html += '<div class="gooey-toast-progress-bar" style="background:' + colors.progress + ';animation-duration:' + duration + 'ms"></div>';
+            html += '<div class="gooey-toast-progress-bar" style="animation-duration:' + duration + 'ms"></div>';
             html += '</div>';
         }
         html += '</div>';
         wrapper.innerHTML = html;
         container.appendChild(wrapper);
 
-        // Inject blob SVG background after DOM render (need real dimensions)
-        requestAnimationFrame(function() {
-            var w = wrapper.offsetWidth;
-            var h = wrapper.offsetHeight;
-            if (!w || !h) return;
-            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('class', 'gooey-blob-svg');
-            svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-            svg.setAttribute('preserveAspectRatio', 'none');
-            svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
-            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', generateBlobPath(w, h, 14));
-            path.setAttribute('fill', colors.fill);
-            svg.appendChild(path);
-            wrapper.insertBefore(svg, wrapper.firstChild);
-        });
-
         // Action button handler
         if (options.action) {
-            var btn = wrapper.querySelector('.gooey-toast-action-button');
-            btn.addEventListener('click', function() {
+            wrapper.querySelector('.gooey-toast-action-button').addEventListener('click', function() {
                 options.action.onClick();
                 dismissToast(wrapper);
             });
-            btn.addEventListener('mouseenter', function() { this.style.background = colors.actionHover; });
-            btn.addEventListener('mouseleave', function() { this.style.background = colors.actionBg; });
         }
 
         // Timer with hover-pause (matching goey-toast behavior)
