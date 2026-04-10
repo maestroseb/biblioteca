@@ -153,7 +153,6 @@
             background: none; border: 2px solid var(--gray-200); color: var(--gray-500);
             padding: 12px 20px; font-size: 0.95em; font-weight: 700;
             border-radius: var(--radius-sm); cursor: pointer;
-            margin-top: 20px; align-self: center;
             transition: border-color 0.15s, color 0.15s;
         }
         .btn-stats:hover { border-color: var(--gray-400); color: var(--gray-700); }
@@ -206,22 +205,92 @@
         .autocomplete-items div:hover,
         .autocomplete-items div.autocomplete-active { background: var(--blue-light); }
 
-        /* ── Toast ─────────────────────────────── */
+        /* ── Goey Toast (faithful to github.com/anl331/goey-toast) ── */
         .toast-container {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; display: flex; flex-direction: column; align-items: center; gap: 8px;
-            pointer-events: none;
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; flex-direction: column-reverse;
+            align-items: center; pointer-events: none;
+            padding: 16px; box-sizing: border-box;
         }
-        .toast {
-            padding: 14px 28px; border-radius: var(--radius-sm);
-            font-weight: 700; font-size: 1em; color: #fff;
-            background: var(--green); box-shadow: var(--shadow-lg);
-            opacity: 0; transform: translateY(20px);
-            animation: toastIn 0.3s ease forwards, toastOut 0.3s ease 1.8s forwards;
+        .gooey-toast-wrapper {
+            pointer-events: auto; position: relative;
+            width: fit-content; min-width: 300px; max-width: 420px;
+            margin-bottom: 14px; cursor: default;
+            user-select: none; -webkit-user-select: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+            opacity: 0; transform: translateY(20px) scale(0.95);
+            animation: gooeyEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        .toast.toast-warn { background: var(--amber); }
-        @keyframes toastIn { to { opacity: 1; transform: translateY(0); } }
-        @keyframes toastOut { to { opacity: 0; transform: translateY(-10px); } }
+        .gooey-toast-wrapper.dismissing {
+            animation: gooeyExit 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        .gooey-toast-content {
+            position: relative;
+            display: flex; flex-direction: column;
+            padding: 12px 16px; min-height: 42px; gap: 2px;
+        }
+        .gooey-toast-header {
+            display: flex; align-items: center; gap: 8px; min-height: 24px;
+        }
+        .gooey-toast-icon {
+            flex-shrink: 0; width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+        }
+        .gooey-toast-icon svg { width: 18px; height: 18px; }
+        .gooey-toast-title {
+            font-size: 14px; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .gooey-toast-description {
+            font-size: 13px; color: rgba(255,255,255,0.85);
+            line-height: 1.4; margin-top: 4px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .gooey-toast-action-wrapper {
+            display: flex; align-items: center; margin-top: 8px;
+        }
+        .gooey-toast-action-button {
+            padding: 5px 14px; border-radius: 999px;
+            font-size: 13px; font-weight: 700;
+            border: none; cursor: pointer;
+            background: rgba(255,255,255,0.25); color: #fff;
+            font-family: inherit; backdrop-filter: blur(2px);
+            transition: background-color 0.2s, transform 0.15s;
+            white-space: nowrap;
+        }
+        .gooey-toast-action-button:hover { background: rgba(255,255,255,0.4); }
+        .gooey-toast-action-button:active { transform: scale(0.97); }
+        .gooey-toast-progress {
+            position: absolute; bottom: 3px; left: 10px; right: 10px;
+            height: 3px; border-radius: 2px; overflow: hidden; z-index: 2;
+            background: rgba(255,255,255,0.2);
+        }
+        .gooey-toast-progress-bar {
+            height: 100%; border-radius: 2px; background: rgba(255,255,255,0.7);
+            transform-origin: left;
+            animation: gooeyProgressShrink linear forwards;
+        }
+        .gooey-toast-progress-bar.paused { animation-play-state: paused; }
+
+        @keyframes gooeyEnter {
+            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+            70% { opacity: 1; transform: translateY(-3px) scale(1.01); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes gooeyExit {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+        }
+        @keyframes gooeyProgressShrink {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .gooey-toast-wrapper { min-width: 280px; max-width: 92vw; }
+        }
 
         /* ── Loading overlay ───────────────────── */
         #overlay {
@@ -239,22 +308,22 @@
         #loader.error { border-left: 5px solid var(--red); color: var(--red); cursor: pointer; }
 
         /* ── Stats modal ───────────────────────── */
-        #stats-modal-overlay {
+        #stats-modal-overlay, #books-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
             display: flex; align-items: center; justify-content: center;
         }
-        #stats-modal {
+        #stats-modal, .modal-card {
             width: 92%; max-width: 800px; max-height: 90vh; overflow-y: auto;
             background: var(--card-bg); border-radius: var(--radius); padding: 28px;
             box-shadow: var(--shadow-lg);
         }
-        #stats-modal-header {
+        #stats-modal-header, .modal-header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--gray-200);
         }
-        #stats-modal-header h2 { margin: 0; font-size: 1.3em; font-weight: 800; }
-        #stats-close-button {
+        #stats-modal-header h2, .modal-header h2 { margin: 0; font-size: 1.3em; font-weight: 800; }
+        #stats-close-button, #books-close-button {
             font-size: 1.8em; color: var(--gray-400); cursor: pointer;
             border: none; background: none; padding: 0; line-height: 1;
         }
@@ -267,6 +336,17 @@
         .stat-card p { margin: 6px 0 0; color: var(--gray-500); font-size: 0.85em; font-weight: 600; }
         .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .chart-section h3 { font-size: 1em; font-weight: 700; color: var(--gray-700); margin: 0 0 12px; }
+
+        /* ── Books modal list ─────────────────── */
+        .book-list-item {
+            padding: 12px 14px; margin-bottom: 6px;
+            background: var(--gray-50); border-radius: var(--radius-sm);
+            font-size: 0.95em; font-weight: 600; color: var(--gray-800);
+            border-left: 4px solid var(--green);
+        }
+        .book-list-empty {
+            text-align: center; padding: 30px 16px; color: var(--gray-400); font-weight: 600;
+        }
 
         /* ── Responsive ────────────────────────── */
         @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
@@ -330,7 +410,10 @@
                     <span class="preview-book" id="preview-book"></span>
                 </div>
                 <button id="loan-button" class="btn-loan">PRESTAR</button>
-                <button id="stats-button" class="btn-stats">📊 Ver Estadísticas</button>
+                <div style="display:flex;gap:10px;margin-top:20px;align-self:stretch;">
+                    <button id="available-books-button" class="btn-stats" style="flex:1;">📗 Libros Disponibles</button>
+                    <button id="stats-button" class="btn-stats" style="flex:1;">📊 Estadísticas</button>
+                </div>
             </div>
 
             <!-- ZONA DEVOLUCIONES -->
@@ -369,6 +452,21 @@
                 <div class="chart-section"><h3>🏆 Libros Más Leídos</h3><canvas id="top-books-chart"></canvas></div>
                 <div class="chart-section"><h3>👥 Mayores Lectores</h3><canvas id="top-readers-chart"></canvas></div>
             </div>
+        </div>
+    </div>
+
+    <div id="books-modal-overlay" class="hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📗 Libros Disponibles <span id="books-modal-count" style="font-size:0.65em;color:var(--gray-400);font-weight:600;"></span></h2>
+                <button id="books-close-button">&times;</button>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <div class="input-wrapper">
+                    <input id="books-modal-search" type="text" placeholder="Buscar libro...">
+                </div>
+            </div>
+            <ul id="books-modal-list" style="list-style:none;padding:0;margin:0;max-height:50vh;overflow-y:auto;"></ul>
         </div>
     </div>
 
@@ -424,6 +522,7 @@
         initAutocomplete(studentInput, () => studentAutocompleteData, () => { bookInput.focus(); });
         initAutocomplete(bookInput, () => bookAutocompleteData, null);
 
+        loanButton.addEventListener('click', loanBook);
         studentInput.addEventListener('keydown', handleLoanOnEnter);
         bookInput.addEventListener('keydown', handleLoanOnEnter);
         studentInput.addEventListener('input', updateSelectionPreview);
@@ -438,6 +537,11 @@
         statsButton.addEventListener('click', showStatistics);
         statsCloseButton.addEventListener('click', hideStatistics);
         statsModalOverlay.addEventListener('click', (e) => { if (e.target === statsModalOverlay) hideStatistics(); });
+
+        document.getElementById('available-books-button').addEventListener('click', showAvailableBooks);
+        document.getElementById('books-close-button').addEventListener('click', hideAvailableBooks);
+        document.getElementById('books-modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'books-modal-overlay') hideAvailableBooks(); });
+        document.getElementById('books-modal-search').addEventListener('input', (e) => { renderAvailableBooksList(e.target.value); });
 
         overlay.addEventListener('click', () => {
             if (loader.classList.contains('error')) setProcessing(false);
@@ -532,15 +636,111 @@
     }
 
     // ==========================================================================
-    // TOAST
+    // GOEY TOAST — faithful to github.com/anl331/goey-toast
     // ==========================================================================
-    function showToast(message, type) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast' + (type === 'warn' ? ' toast-warn' : '');
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => { toast.remove(); }, 2500);
+    const GOEY_TYPE_MAP = { warn: 'warning', success: 'success', error: 'error', info: 'info' };
+
+    // SVG line icons (white stroke) matching goey-toast icon set
+    const GOEY_ICONS = {
+        success: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>',
+        error:   '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>',
+        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        info:    '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8.01"/></svg>'
+    };
+
+    // Background color palette from goey-toast
+    const GOEY_BG = {
+        success: '#4CAF50',
+        error:   '#E53935',
+        warning: '#C49000',
+        info:    '#1E88E5',
+        default: '#555'
+    };
+
+    function showToast(message, type, options) {
+        options = options || {};
+        var container = document.getElementById('toast-container');
+        var resolvedType = GOEY_TYPE_MAP[type] || 'success';
+        var bgColor = GOEY_BG[resolvedType] || GOEY_BG.default;
+        var icon = GOEY_ICONS[resolvedType] || '';
+        var duration = options.duration || 4000;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'gooey-toast-wrapper';
+        wrapper.style.background = bgColor;
+        wrapper._dismissed = false;
+
+        var html = '<div class="gooey-toast-content">';
+        html += '<div class="gooey-toast-header">';
+        if (icon) html += '<span class="gooey-toast-icon">' + icon + '</span>';
+        html += '<span class="gooey-toast-title">' + message + '</span>';
+        html += '</div>';
+        if (options.description) {
+            html += '<p class="gooey-toast-description">' + options.description + '</p>';
+        }
+        if (options.action) {
+            html += '<div class="gooey-toast-action-wrapper">';
+            html += '<button class="gooey-toast-action-button">' + options.action.label + '</button>';
+            html += '</div>';
+        }
+        if (options.showProgress) {
+            html += '<div class="gooey-toast-progress">';
+            html += '<div class="gooey-toast-progress-bar" style="animation-duration:' + duration + 'ms"></div>';
+            html += '</div>';
+        }
+        html += '</div>';
+        wrapper.innerHTML = html;
+        container.appendChild(wrapper);
+
+        // Action button handler
+        if (options.action) {
+            wrapper.querySelector('.gooey-toast-action-button').addEventListener('click', function() {
+                // Remove this toast instantly (no exit animation) to avoid overlap
+                clearTimeout(timer);
+                wrapper._dismissed = true;
+                wrapper.remove();
+                options.action.onClick();
+            });
+        }
+
+        // Timer with hover-pause (matching goey-toast behavior)
+        var remainingTime = duration;
+        var startTime = Date.now();
+        var timer;
+
+        function startDismissTimer(ms) {
+            startTime = Date.now();
+            remainingTime = ms;
+            var bar = wrapper.querySelector('.gooey-toast-progress-bar');
+            if (bar) bar.classList.remove('paused');
+            timer = setTimeout(function() {
+                dismissToast(wrapper);
+                if (options.onAutoClose) options.onAutoClose();
+            }, ms);
+        }
+
+        wrapper.addEventListener('mouseenter', function() {
+            clearTimeout(timer);
+            var elapsed = Date.now() - startTime;
+            remainingTime = Math.max(remainingTime - elapsed, 0);
+            var bar = wrapper.querySelector('.gooey-toast-progress-bar');
+            if (bar) bar.classList.add('paused');
+        });
+
+        wrapper.addEventListener('mouseleave', function() {
+            startDismissTimer(remainingTime);
+        });
+
+        startDismissTimer(duration);
+
+        return { dismiss: function() { clearTimeout(timer); dismissToast(wrapper); } };
+    }
+
+    function dismissToast(el) {
+        if (el._dismissed) return;
+        el._dismissed = true;
+        el.classList.add('dismissing');
+        setTimeout(function() { el.remove(); }, 350);
     }
 
     // ==========================================================================
@@ -606,10 +806,17 @@
 
             const returnBtn = document.createElement('button');
             returnBtn.className = 'btn-return';
-            returnBtn.textContent = 'Devolver';
-            returnBtn.addEventListener('click', () => {
-                returnBook(loan.rowNumber, loan.book, loan.student);
-            });
+            if (loan.pending) {
+                returnBtn.textContent = 'Pendiente…';
+                returnBtn.disabled = true;
+                returnBtn.style.opacity = '0.5';
+                returnBtn.style.cursor = 'default';
+            } else {
+                returnBtn.textContent = 'Devolver';
+                returnBtn.addEventListener('click', () => {
+                    returnBook(loan.rowNumber, loan.book, loan.student);
+                });
+            }
 
             item.appendChild(detailsDiv);
             item.appendChild(returnBtn);
@@ -631,27 +838,67 @@
         const student = studentInput.value;
         const book = bookInput.value;
         if (!student || !book || !students.includes(student) || !availableBooks.includes(book)) {
-            showToast('⚠️ Selecciona un alumno y un libro válidos.', 'warn');
+            showToast('Selecciona un alumno y un libro válidos', 'warn');
             return;
         }
-        setProcessing(true, 'Registrando préstamo...');
-        google.script.run
-            .withSuccessHandler(onLoanSuccess)
-            .withFailureHandler(onLoadError)
-            .loanBook(student, book);
-    }
-    function onLoanSuccess(newLoan) {
-        availableBooks = availableBooks.filter(b => b !== newLoan.book);
-        activeLoans.push(newLoan);
-        if (singleLoanRuleActive) students = students.filter(s => s !== newLoan.student);
+
+        // Optimistic UI update
+        availableBooks = availableBooks.filter(function(b) { return b !== book; });
+        var tempLoan = { rowNumber: -Date.now(), student: student, book: book, loanDate: new Date().toISOString(), pending: true };
+        activeLoans.push(tempLoan);
+        if (singleLoanRuleActive) students = students.filter(function(s) { return s !== student; });
         studentInput.value = '';
         bookInput.value = '';
         studentInput.dispatchEvent(new Event('input'));
         bookInput.dispatchEvent(new Event('input'));
         updateUI();
-        setProcessing(false);
-        showToast('✅ ¡Préstamo realizado!');
+        studentInput._skipNextFocusList = true;
         studentInput.focus();
+
+        var undone = false;
+
+        showToast('Préstamo realizado', 'success', {
+            description: student + ' ← ' + book,
+            duration: 3000,
+            showProgress: true,
+            action: {
+                label: 'Deshacer',
+                onClick: function() {
+                    undone = true;
+                    activeLoans = activeLoans.filter(function(l) { return l !== tempLoan; });
+                    availableBooks.push(book);
+                    availableBooks.sort();
+                    if (singleLoanRuleActive && !students.includes(student)) {
+                        students.push(student);
+                        students.sort();
+                    }
+                    updateUI();
+                    showToast('Préstamo deshecho', 'info');
+                }
+            },
+            onAutoClose: function() {
+                if (undone) return;
+                tempLoan.pending = false;
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        var idx = activeLoans.indexOf(tempLoan);
+                        if (idx !== -1) activeLoans[idx] = result;
+                        renderActiveLoans(returnSearchInput.value);
+                    })
+                    .withFailureHandler(function(error) {
+                        activeLoans = activeLoans.filter(function(l) { return l !== tempLoan; });
+                        availableBooks.push(book);
+                        availableBooks.sort();
+                        if (singleLoanRuleActive && !students.includes(student)) {
+                            students.push(student);
+                            students.sort();
+                        }
+                        updateUI();
+                        showToast('Error al registrar préstamo', 'error', { description: error.message });
+                    })
+                    .loanBook(student, book);
+            }
+        });
     }
 
     // ==========================================================================
@@ -659,26 +906,56 @@
     // ==========================================================================
     function returnBook(rowNumber, bookTitle, studentName) {
         if (isProcessing) return;
-        setProcessing(true, 'Procesando devolución...');
-        google.script.run
-            .withSuccessHandler(onReturnSuccess)
-            .withFailureHandler(onLoadError)
-            .returnBook(rowNumber, bookTitle, studentName);
-    }
-    function onReturnSuccess(returnedInfo) {
-        activeLoans = activeLoans.filter(loan => loan.rowNumber !== returnedInfo.returnedRow);
-        availableBooks.push(returnedInfo.returnedBookTitle);
+
+        // Save loan for potential undo
+        var loanToReturn = activeLoans.find(function(l) { return l.rowNumber === rowNumber; });
+
+        // Optimistic UI update
+        activeLoans = activeLoans.filter(function(loan) { return loan.rowNumber !== rowNumber; });
+        availableBooks.push(bookTitle);
         availableBooks.sort();
-        if (singleLoanRuleActive && returnedInfo.returnedStudent) {
-            const stillHasLoans = activeLoans.some(l => l.student === returnedInfo.returnedStudent);
-            if (!stillHasLoans && !students.includes(returnedInfo.returnedStudent)) {
-                students.push(returnedInfo.returnedStudent);
+        var studentReAdded = false;
+        if (singleLoanRuleActive && studentName) {
+            var stillHasLoans = activeLoans.some(function(l) { return l.student === studentName; });
+            if (!stillHasLoans && !students.includes(studentName)) {
+                students.push(studentName);
                 students.sort();
+                studentReAdded = true;
             }
         }
         updateUI();
-        setProcessing(false);
-        showToast('✅ ¡Libro devuelto!');
+
+        var undone = false;
+
+        showToast('Libro devuelto', 'success', {
+            description: bookTitle + ' — ' + studentName,
+            duration: 3000,
+            showProgress: true,
+            action: {
+                label: 'Deshacer',
+                onClick: function() {
+                    undone = true;
+                    if (loanToReturn) activeLoans.push(loanToReturn);
+                    availableBooks = availableBooks.filter(function(b) { return b !== bookTitle; });
+                    if (studentReAdded) students = students.filter(function(s) { return s !== studentName; });
+                    updateUI();
+                    showToast('Devolución deshecha', 'info');
+                }
+            },
+            onAutoClose: function() {
+                if (undone) return;
+                google.script.run
+                    .withSuccessHandler(function() { /* UI already updated */ })
+                    .withFailureHandler(function(error) {
+                        if (loanToReturn) activeLoans.push(loanToReturn);
+                        availableBooks = availableBooks.filter(function(b) { return b !== bookTitle; });
+                        if (studentReAdded) students = students.filter(function(s) { return s !== studentName; });
+                        updateUI();
+                        showToast('Error al devolver libro', 'error', { description: error.message });
+                    })
+                    .returnBook(rowNumber, bookTitle, studentName);
+            }
+        });
     }
 
     // ==========================================================================
@@ -753,7 +1030,10 @@
                 count++;
             }
         }
-        inp.addEventListener("focus", function() { if (!this.value) showList(''); });
+        inp.addEventListener("focus", function() {
+            if (this._skipNextFocusList) { this._skipNextFocusList = false; return; }
+            if (!this.value) showList('');
+        });
         inp.addEventListener("input", function() { showList(this.value); });
         inp.addEventListener("keydown", function(e) {
             const lc = document.getElementById(inp.id + "autocomplete-list");
@@ -778,11 +1058,39 @@
     function closeAllLists(elmnt, currentInp) {
         const lists = document.getElementsByClassName("autocomplete-items");
         for (let i = lists.length - 1; i >= 0; i--) {
-            if (elmnt !== lists[i] && (!currentInp || elmnt !== currentInp))
+            if (elmnt !== lists[i] && (!currentInp || elmnt !== currentInp)
+                && !lists[i].parentNode.contains(elmnt))
                 lists[i].parentNode.removeChild(lists[i]);
         }
     }
     document.addEventListener("click", function(e) { closeAllLists(e.target, null); });
+
+    // ==========================================================================
+    // LIBROS DISPONIBLES
+    // ==========================================================================
+    function showAvailableBooks() {
+        document.getElementById('books-modal-search').value = '';
+        renderAvailableBooksList('');
+        document.getElementById('books-modal-overlay').classList.remove('hidden');
+    }
+    function hideAvailableBooks() { document.getElementById('books-modal-overlay').classList.add('hidden'); }
+    function renderAvailableBooksList(filter) {
+        var list = document.getElementById('books-modal-list');
+        var norm = normalizeString(filter || '');
+        var filtered = availableBooks.filter(function(b) { return !norm || normalizeString(b).includes(norm); });
+        document.getElementById('books-modal-count').textContent = '(' + filtered.length + '/' + availableBooks.length + ')';
+        list.innerHTML = '';
+        if (filtered.length === 0) {
+            list.innerHTML = '<li class="book-list-empty">No se encontraron libros.</li>';
+            return;
+        }
+        filtered.forEach(function(book) {
+            var li = document.createElement('li');
+            li.className = 'book-list-item';
+            li.textContent = book;
+            list.appendChild(li);
+        });
+    }
 
     // ==========================================================================
     // ESTADÍSTICAS
@@ -796,7 +1104,7 @@
     function onStatsLoaded(stats) {
         if (!stats || !stats.simpleStats) {
             setProcessing(false);
-            showToast('⚠️ No hay préstamos registrados todavía.', 'warn');
+            showToast('No hay préstamos registrados todavía', 'warn');
             return;
         }
         document.getElementById('stat-total-loans').textContent = stats.simpleStats.totalLoans;
