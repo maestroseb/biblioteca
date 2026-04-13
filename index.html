@@ -393,14 +393,14 @@
                 <div class="form-group">
                     <label for="student-input">1. Elige el alumno/a:</label>
                     <div class="input-wrapper">
-                        <input id="student-input" type="text" placeholder="Toca para ver la lista o escribe...">
+                        <input id="student-input" type="text" placeholder="Escribe para buscar...">
                         <span id="student-clear-btn" class="clear-btn hidden">&times;</span>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="book-input">2. Elige el libro disponible:</label>
                     <div class="input-wrapper">
-                        <input id="book-input" type="text" placeholder="Toca para ver la lista o escribe...">
+                        <input id="book-input" type="text" placeholder="Escribe para buscar...">
                         <span id="book-clear-btn" class="clear-btn hidden">&times;</span>
                     </div>
                 </div>
@@ -852,7 +852,6 @@
         studentInput.dispatchEvent(new Event('input'));
         bookInput.dispatchEvent(new Event('input'));
         updateUI();
-        studentInput._skipNextFocusList = true;
         studentInput.focus();
 
         var undone = false;
@@ -1030,10 +1029,6 @@
                 count++;
             }
         }
-        inp.addEventListener("focus", function() {
-            if (this._skipNextFocusList) { this._skipNextFocusList = false; return; }
-            if (!this.value) showList('');
-        });
         inp.addEventListener("input", function() { showList(this.value); });
         inp.addEventListener("keydown", function(e) {
             const lc = document.getElementById(inp.id + "autocomplete-list");
