@@ -760,7 +760,7 @@
             .sort((a, b) => {
                 const dA = a.loanDate ? new Date(a.loanDate) : new Date();
                 const dB = b.loanDate ? new Date(b.loanDate) : new Date();
-                return dA - dB;
+                return dB - dA;
             });
 
         if (filteredLoans.length === 0) {
@@ -851,6 +851,8 @@
         bookInput.value = '';
         studentInput.dispatchEvent(new Event('input'));
         bookInput.dispatchEvent(new Event('input'));
+        returnSearchInput.value = '';
+        returnSearchInput.dispatchEvent(new Event('input'));
         updateUI();
         studentInput.focus();
 
@@ -1029,7 +1031,10 @@
                 count++;
             }
         }
-        inp.addEventListener("input", function() { showList(this.value); });
+        inp.addEventListener("input", function() {
+            if (!this.value) { closeAllLists(null, inp); return; }
+            showList(this.value);
+        });
         inp.addEventListener("keydown", function(e) {
             const lc = document.getElementById(inp.id + "autocomplete-list");
             const items = lc ? lc.getElementsByTagName("div") : null;
